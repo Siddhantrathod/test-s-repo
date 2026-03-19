@@ -1,0 +1,51 @@
+name: Sentinelops Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    # SAST Scan placeholder
+    - name: Run SAST Scan
+      run: |
+        echo "Running Static Application Security Testing..."
+        echo "Mock SAST finished"
+
+    # Secret Scanning (Gitleaks)
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
+    # Docker Build (with increased timeout per user's old request)
+    - name: Build Docker Image
+      env:
+        DOCKER_CLIENT_TIMEOUT: "120"
+        COMPOSE_HTTP_TIMEOUT: "120"
+      run: docker build -t sentinelops-target-app .
+
+    # Container & Dependency Scan (Trivy)
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'sentinelops-target-app'
+        format: 'table'
+        exit-code: '0' # Set to 1 if you want to fail pipeline on vulnerabilities
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+    # DAST Scan placeholder
+    - name: Run DAST Scan
+      run: |
+        echo "Running DAST via OWASP ZAP/Selenium..."
+        # You would run the docker container here, then run ZAP against http://localhost:3000
+        echo "Mock DAST finished"
