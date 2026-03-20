@@ -1,0 +1,6 @@
+# Mock secrets for scanners. Do not use in production.
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+GITHUB_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+DB_PASSWORD = "password123!"
+JWT_SECRET = "super-secret-jwt-key-do-not-share"

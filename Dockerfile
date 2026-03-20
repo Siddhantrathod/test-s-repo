@@ -1,19 +1,19 @@
-# Use an outdated node image to ensure Trivy finds container vulnerabilities
-FROM node:14-alpine
+# Use an outdated python image to ensure Trivy finds container vulnerabilities
+FROM python:3.7
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy requirements first for cache
+COPY requirements.txt ./
 
 # Install dependencies (may have vulnerable versions)
-RUN npm install
+RUN pip install -r requirements.txt
 
-# Copy application files
+# Copy application files and .env (intentionally insecure)
 COPY . .
 
-# Expose port
-EXPOSE 3000
+# Expose an extra unused port intentionally
+EXPOSE 5000 5001
 
 # Start application
-CMD ["npm", "start"]
+CMD ["python", "app/app.py"]
