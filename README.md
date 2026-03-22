@@ -5,6 +5,7 @@ DO NOT DEPLOY OR USE IN PRODUCTION.
 
 ## What it includes
 - A minimal Flask app with vulnerable endpoints for SAST/DAST testing.
+- A Node/Express app in [server.js](server.js) with additional SAST patterns (SQLi, cmd injection, path traversal, insecure deserialization, weak crypto).
 - Hardcoded fake secrets in code and .env files for secret scanning.
 - Outdated dependencies for SCA findings.
 - Insecure Docker and Compose examples for container scanners.

@@ -32,6 +32,11 @@ jobs:
         COMPOSE_HTTP_TIMEOUT: "120"
       run: docker build -t sentinelops-target-app .
 
+    - name: Free disk space before Trivy
+      run: |
+        docker system prune -af
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+
     - name: Cache Trivy DB
       uses: actions/cache@v3
       with:
@@ -41,6 +46,8 @@ jobs:
     # Container & Dependency Scan (Trivy)
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.20.0
+      env:
+        TRIVY_TEMP_DIR: /home/runner/work/_temp/trivy
       with:
         image-ref: 'sentinelops-target-app'
         format: 'table'

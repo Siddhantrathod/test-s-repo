@@ -9,7 +9,9 @@
   "dependencies": {
     "express": "4.16.0",
     "body-parser": "1.18.2",
-    "lodash": "4.17.10"
+    "lodash": "4.17.10",
+    "node-serialize": "0.0.4",
+    "sqlite3": "4.0.0"
   },
   "author": "",
   "license": "ISC"
