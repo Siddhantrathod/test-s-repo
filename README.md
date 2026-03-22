@@ -7,7 +7,7 @@ DO NOT DEPLOY OR USE IN PRODUCTION.
 - A minimal Flask app with vulnerable endpoints for SAST/DAST testing.
 - Hardcoded fake secrets in code and .env files for secret scanning.
 - Outdated dependencies for SCA findings.
-- Insecure Docker, Compose, and IaC examples for container/IaC scanners.
+- Insecure Docker and Compose examples for container scanners.
 
 ## Run locally
 ```bash
@@ -20,7 +20,6 @@ docker run -p 5000:5000 vuln-app
 - DAST: /search, /run, /file, /deserialize, /hash endpoints.
 - Trivy: CVEs from base image and old Python packages.
 - Gitleaks: .env, .env.sample, config files, commented tokens.
-- IaC: public S3 bucket, open security group, privileged container, hostPath mount.
 
 ## Notes
 - All vulnerabilities are intentional and required for scanner validation.

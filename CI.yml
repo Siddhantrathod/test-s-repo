@@ -32,9 +32,15 @@ jobs:
         COMPOSE_HTTP_TIMEOUT: "120"
       run: docker build -t sentinelops-target-app .
 
+    - name: Cache Trivy DB
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/trivy
+        key: ${{ runner.os }}-trivy-db
+
     # Container & Dependency Scan (Trivy)
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@0.20.0
       with:
         image-ref: 'sentinelops-target-app'
         format: 'table'
@@ -42,6 +48,8 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+        skip-db-update: true
+        timeout: '5m'
 
     # DAST Scan placeholder
     - name: Run DAST Scan
