@@ -1,0 +1,111 @@
+name: SentinelOps Security Scan
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --------------------
+      # SAST (multi-language)
+      # --------------------
+      - name: Semgrep (SAST)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/ci
+        env:
+          SEMGREP_APP_TOKEN: ""
+        continue-on-error: true
+
+      - name: Bandit (Python SAST)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install bandit
+          bandit -r app -f txt || true
+
+      # --------------------
+      # Secret scanning
+      # --------------------
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+        continue-on-error: true
+
+      # --------------------
+      # Build images (for Trivy + DAST)
+      # --------------------
+      - name: Build Docker images
+        run: |
+          docker build -t sentinelops-vuln-flask -f Dockerfile .
+          docker build -t sentinelops-vuln-node -f Dockerfile.node .
+
+      # --------------------
+      # Trivy (image + repo filesystem)
+      # --------------------
+      - name: Trivy (repo filesystem)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "0"
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH,MEDIUM"
+
+      - name: Trivy (Flask image)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: sentinelops-vuln-flask
+          format: table
+          exit-code: "0"
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH,MEDIUM"
+
+      - name: Trivy (Node image)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: sentinelops-vuln-node
+          format: table
+          exit-code: "0"
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH,MEDIUM"
+
+      # --------------------
+      # DAST (OWASP ZAP baseline)
+      # --------------------
+      - name: Start targets (Docker Compose)
+        run: |
+          docker compose up -d --build
+          # basic wait for ports
+          for i in $(seq 1 30); do
+            (curl -fsS http://localhost:5000/api/ping && curl -fsS http://localhost:3000/) && exit 0
+            sleep 2
+          done
+          echo "Targets did not become healthy in time" >&2
+          docker compose ps
+          docker compose logs
+          exit 1
+
+      - name: ZAP baseline (Flask)
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: http://localhost:5000/
+          fail_action: false
+
+      - name: ZAP baseline (Node)
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: http://localhost:3000/
+          fail_action: false
+
+      - name: Stop targets
+        if: always()
+        run: docker compose down -v

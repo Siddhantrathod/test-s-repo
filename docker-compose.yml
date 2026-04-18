@@ -1,9 +1,16 @@
 version: "3.8"
 services:
-  vuln-app:
+  vuln-flask:
     build: .
     ports:
       - "5000:5000"
       - "5001:5001"
     environment:
       - FLASK_ENV=development
+
+  vuln-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    ports:
+      - "3000:3000"
